@@ -1,56 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Tracking Page</title>
-</head>
-<body>
-  <h2>Welcome</h2>
-  <p>If you see this, tracking worked.</p>
+const express = require('express');
+const fetch = require('node-fetch');
+const app = express();
 
-  <script>
-    const BOT_TOKEN = "8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM"; // твой Telegram-бот
+const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА';
+const CHAT_ID = 'ВАШ_CHAT_ID'; // можно сделать динамическим, если нужно
+const PORT = 3000;
 
-    async function sendToTelegram(chatId, message) {
-      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-      const payload = {
-        chat_id: chatId,
-        text: message,
-        parse_mode: "HTML"
-      };
-      try {
-        await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      } catch (e) {
-        console.error("Telegram send error:", e);
-      }
-    }
+app.use(express.json());
 
-    async function main() {
-      // путь вида /lg/c=CHATID
-      const path = window.location.pathname;
-      const match = path.match(/\/lg\/c=([^\/]+)/);
-      if (!match) return;
-      const chatId = match[1];
+app.get('/', async (req, res) => {
+  const u = req.query.u;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-      // получаем IP через внешний сервис
-      let ip = "unknown";
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        ip = data.ip;
-      } catch (e) {
-        console.error("IP fetch error:", e);
-      }
+  if (!u) {
+    return res.status(400).send('Missing "u" parameter');
+  }
 
-      const msg = `🚨 <b>Visit detected</b>\nIP: <code>${ip}</code>\nURL: ${window.location.href}`;
-      await sendToTelegram(chatId, msg);
-    }
+  const message = `👤 Новый переход\n🔗 u: ${u}\n🌐 IP: ${ip}`;
 
-    main();
-  </script>
-</body>
-</html>
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: message
+      })
+    });
+
+    res.send('OK');
+  } catch (err) {
+    console.error('Ошибка отправки в Telegram:', err);
+    res.status(500).send('Ошибка');
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
+});
